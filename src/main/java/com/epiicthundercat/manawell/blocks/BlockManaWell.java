@@ -2,7 +2,6 @@ package com.epiicthundercat.manawell.blocks;
 
 import java.util.Random;
 
-import com.epiicthundercat.manawell.init.ManaWellBlock;
 import com.epiicthundercat.manawell.tileentity.TileEntityManaWell;
 
 import net.minecraft.block.Block;
@@ -33,7 +32,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
-public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider {
+public class BlockManaWell extends Block implements ITileEntityProvider {
 
 	public static final PropertyInteger FILL_LEVEL = PropertyInteger.create("fill_level", 0, 5);
 	public static final int MANA_CAP = 560;
@@ -42,7 +41,7 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider 
 	private int collideTimer = 0;
 
 	public BlockManaWell() {
-		super("mana_well", Material.ROCK);
+		super(Material.ROCK);
 		/*
 		 * set to 5 so they have the correct (full) texture when they are
 		 * generated(when a player places one the meta value is 0; handled under

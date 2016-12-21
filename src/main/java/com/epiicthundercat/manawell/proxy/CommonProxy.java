@@ -19,9 +19,6 @@ public class CommonProxy {
 	}
 
 	private void register(FMLPreInitializationEvent preEvent) {
-		ManaWellBlocks.register(preEvent);
-		
-		
 		
 	}
 

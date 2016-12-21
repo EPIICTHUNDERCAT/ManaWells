@@ -3,7 +3,7 @@ package com.epiicthundercat.manawell.init;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
-public class ManaWellBlock extends Block{
+public class ManaWellBlock{ /*extends Block{
 	public ManaWellBlock(String name, Material material){
 		super(material);
 		this.setRegistryName(name.toLowerCase());
@@ -14,4 +14,5 @@ public class ManaWellBlock extends Block{
 	private void addToBlocks(Block block) {
 		ManaWellBlocks.blocks.add(block);
 	}
+}*/
 }
