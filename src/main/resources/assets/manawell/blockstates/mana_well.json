@@ -1,13 +1,39 @@
-{
-    "variants":
-    {
-        "fill_level=0": { "model": "manawell:mana_well0"},
-        "fill_level=1": { "model": "manawell:mana_well1"},
-        "fill_level=2": { "model": "manawell:mana_well2"},
-        "fill_level=3": { "model": "manawell:mana_well3"},
-        "fill_level=4": { "model": "manawell:mana_well4"},
-        "fill_level=5": { "model": "manawell:mana_well5"},
-        "normal":{"model":"manawell:mana_well5"},
-        "inventory":{"model":"manawell:mana_well5"}
-    }
+{  
+   "forge_marker":1,
+   "defaults":{  
+      "model":"manawell:mana_well5",
+      "transform":"forge:default-block"
+   },
+   "variants":{  
+      "fill_level":{  
+         "0":{  
+            "model":"manawell:mana_well0"
+         },
+         "1":{  
+            "model":"manawell:mana_well1"
+         },
+         "2":{  
+            "model":"manawell:mana_well2"
+         },
+         "3":{  
+            "model":"manawell:mana_well3"
+         },
+         "4":{  
+            "model":"manawell:mana_well4"
+         },
+         "5":{  
+            "model":"manawell:mana_well5"
+         }
+      },
+      "normal":[  
+         {  
+
+         }
+      ],
+      "inventory":[  
+         {  
+
+         }
+      ]
+   }
 }
