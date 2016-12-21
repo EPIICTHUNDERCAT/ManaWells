@@ -1,7 +1,7 @@
-package com.darkliz.manawell.init;
+package com.epiicthundercat.manawell.init;
 
 
-import com.darkliz.manawell.tileentity.TileEntityManaWell;
+import com.epiicthundercat.manawell.tileentity.TileEntityManaWell;
 
 import net.minecraftforge.fml.common.registry.GameRegistry;
 

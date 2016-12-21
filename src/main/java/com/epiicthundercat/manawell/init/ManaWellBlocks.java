@@ -1,44 +1,46 @@
-package com.darkliz.manawell.init;
+package com.epiicthundercat.manawell.init;
 
-import com.darkliz.manawell.Reference;
-import com.darkliz.manawell.blocks.BlockManaWell;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 
-public class ManaWellBlocks {
+public class ManaWellBlocks extends Blocks{
 	
-	//Block Declaration
-	public static Block mana_well;
+public static List<Block> blocks = new ArrayList();
 	
-	//Block Registration
-	public static void init()
-	{
-		mana_well = new BlockManaWell().setUnlocalizedName("mana_well");
-		register(mana_well);
+	public static Block mana_well = new ManaWellBlock("mana_well", Material.ROCK);
+	
+	
+	public static List<Block> blockList() {
+		return blocks;		
 	}
 	
-	//Render Registers
-	public static void registerRenders()
-	{
-		registerRender(mana_well);
+	public static void register(FMLPreInitializationEvent preEvent) {
+		for (Block block : blockList()){
+			ItemBlock iBlock = new ItemBlock(block);
+			GameRegistry.register(block);
+		    GameRegistry.register(iBlock, block.getRegistryName());
+		}
 	}
 	
-	
-	public static void register(Block block)
-	{
-		GameRegistry.registerBlock(block, block.getUnlocalizedName().substring(5));
-	}
-	
-	public static void registerRender(Block block)
-	{
-		Item item = Item.getItemFromBlock(block);
-		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().
-		register(item, 0, new ModelResourceLocation(Reference.MOD_ID + ":" + item.getUnlocalizedName().substring(5), "inventory"));
+	public static void registerRender(FMLInitializationEvent event) {
+		for (Block block : blockList()){
+		Item item = new Item().getItemFromBlock(block);
+		RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+    	renderItem.getItemModelMesher().register(item, 0, new ModelResourceLocation(block.getRegistryName().toString(), "inventory"));
+		}
 	}
 	
 }

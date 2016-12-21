@@ -1,6 +1,6 @@
-package com.darkliz.lizzymod.lizzy_mana_stuff.tileentity;
+package com.epiicthundercat.manawell.tileentity;
 
-import com.darkliz.lizzymod.lizzy_mana_stuff.blocks.BlockManaWell;
+import com.epiicthundercat.manawell.blocks.BlockManaWell;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -58,13 +58,14 @@ public class TileEntityManaWell extends TileEntity {
 	}
 	
 	@Override
-	public void writeToNBT(NBTTagCompound compound) {
+	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		super.writeToNBT(compound);
 		
 		compound.setBoolean("canRelease", canRelease);
 		compound.setBoolean("isDormant", isDormant);
 		compound.setLong("dormantStartTime", dormantStartTime);
 		compound.setInteger("storedMana", storedMana);
+		return compound;
 	}
 	
 	

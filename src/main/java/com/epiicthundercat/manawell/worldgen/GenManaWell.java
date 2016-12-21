@@ -1,12 +1,12 @@
-package com.darkliz.lizzymod.lizzy_mana_stuff.worldgen;
+package com.epiicthundercat.manawell.worldgen;
 
 import java.util.Random;
 
-import com.darkliz.lizzymod.init.LMBlocks;
+import com.epiicthundercat.manawell.init.ManaWellBlocks;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenerator;
 
@@ -16,16 +16,16 @@ public class GenManaWell extends WorldGenerator {
 	@Override
 	public boolean generate(World world, Random rand, BlockPos pos) {
 		
-		while(world.getBlockState(pos) != Blocks.bedrock.getDefaultState() && pos.getY() > 1) //don't go lower than layer 1 so we don't replace the bottom layer of bedrock (this is to prevent making void holes if the mod should be removed)
+		while(world.getBlockState(pos) != Blocks.BEDROCK.getDefaultState() && pos.getY() > 1) //don't go lower than layer 1 so we don't replace the bottom layer of bedrock (this is to prevent making void holes if the mod should be removed)
         {
             pos = pos.down();
         }
 		
-		world.setBlockState(pos, LMBlocks.mana_well.getDefaultState(), 3);
+		world.setBlockState(pos, ManaWellBlocks.mana_well.getDefaultState(), 3);
 		
-		if(world.getBlockState(pos.down()) != Blocks.bedrock.getDefaultState())
+		if(world.getBlockState(pos.down()) != Blocks.BEDROCK.getDefaultState())
 		{
-			world.setBlockState(pos.down(), Blocks.bedrock.getDefaultState(), 2); //place a block of bedrock under the mana well if there is none (just an extra check to prevent void holes)
+			world.setBlockState(pos.down(), Blocks.BEDROCK.getDefaultState(), 2); //place a block of bedrock under the mana well if there is none (just an extra check to prevent void holes)
 		}
 		
 		//System.out.println("pos = " + pos);
@@ -64,10 +64,10 @@ public class GenManaWell extends WorldGenerator {
 
 	private void replaceIfBedrock(World world, BlockPos pos) 
 	{
-		if(world.getBlockState(pos) == Blocks.bedrock.getDefaultState())
+		if(world.getBlockState(pos) == Blocks.BEDROCK.getDefaultState())
 		{
 			BlockPos replacementPos = pos.up();
-			while(world.getBlockState(replacementPos) == Blocks.bedrock.getDefaultState() && replacementPos.getY() < 6)
+			while(world.getBlockState(replacementPos) == Blocks.BEDROCK.getDefaultState() && replacementPos.getY() < 6)
 			{
 				replacementPos = replacementPos.up();
 			}

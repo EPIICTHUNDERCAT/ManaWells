@@ -1,9 +1,10 @@
-package com.darkliz.manawell.worldgen;
+package com.epiicthundercat.manawell.worldgen;
 
 import java.util.Random;
 
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.fml.common.IWorldGenerator;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -18,10 +19,10 @@ public class ManaWellWorldGen implements IWorldGenerator{
 	}
 	
 	@Override
-	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator,
+	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator,
 			IChunkProvider chunkProvider) 
 	{
-		switch(world.provider.getDimensionId())
+		switch(world.provider.getDimension())
 		{
 		case 0: 
 			//generate surface world
@@ -36,7 +37,7 @@ public class ManaWellWorldGen implements IWorldGenerator{
 			generateEnd(world, random, chunkX*16, chunkZ*16);
 			
 		default:
-			if(world.provider.getDimensionId() != 0 && world.provider.isSurfaceWorld())
+			if(world.provider.getDimension() != 0 && world.provider.isSurfaceWorld())
 			{
 				generateSurface(world, random, chunkX*16, chunkZ*16);
 			}
@@ -71,6 +72,8 @@ public class ManaWellWorldGen implements IWorldGenerator{
 			new GenManaWell().generate(world, random, pos);
 		}
 	}
+
+
 	
 	
 }
