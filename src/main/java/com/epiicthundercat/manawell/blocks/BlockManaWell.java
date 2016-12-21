@@ -33,40 +33,48 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
-public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
+public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider {
 
-
-	public static final PropertyInteger FILL_LEVEL = PropertyInteger.create("fill_level", 0, 5); 
+	public static final PropertyInteger FILL_LEVEL = PropertyInteger.create("fill_level", 0, 5);
 	public static final int MANA_CAP = 560;
-	public static final int DORMANT_TIME = 24000; //one minecraft day
-	
+	public static final int DORMANT_TIME = 24000; // one minecraft daye
+
 	private int collideTimer = 0;
-	
+
 	public BlockManaWell() {
 		super("mana_well", Material.ROCK);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(FILL_LEVEL, Integer.valueOf(5))); //set to 5 so they have the correct (full) texture when they are generated (when a player places one the meta value is 0; handled under createNewTileEntity)
+		/*
+		 * set to 5 so they have the correct (full) texture when they are
+		 * generated(when a player places one the meta value is 0; handled under
+		 * createNewTileEntity).
+		 */
+		this.setDefaultState(this.blockState.getBaseState().withProperty(FILL_LEVEL, Integer.valueOf(5)));
 		this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
 		this.setBlockUnbreakable();
 		this.setResistance(6000000.0F);
 		this.setSoundType(SoundType.METAL);
 		this.setTickRandomly(true);
-		
+
 	}
-	
-	
+
 	@Override
-	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) //runs only on server
-    {
-		
-		//This method runs on the server only
-		
-		//first, make sure the mana well is not more than 5 blocks away from the void; it gathers mana from the nothingness of the void and must be close enough or it won't fill up; it also must be in the surface world
-		if(pos.getY() > 4 || !worldIn.provider.isSurfaceWorld()) //layer 0-4 allow mana to be gathered, and only in the surface world
-		{
+	// runs only on server
+	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
+
+		/*
+		 * This method runs on the server only
+		 * 
+		 * first, make sure the mana well is not more than 5 blocks away from
+		 * the void; it gathers mana from the nothingness of the void and must
+		 * be close enough or it won't fill up; it also must be in the surface
+		 * world
+		 */
+		// layer 0-4 allow mana to be gathered and only in the surface world
+		if (pos.getY() > 4 || !worldIn.provider.isSurfaceWorld()) {
 			return;
 		}
-		
-		//get the tile entity at pos
+
+		// get the tile entity at pos
 		TileEntityManaWell manaWell = (TileEntityManaWell) worldIn.getTileEntity(pos);
 
 		if (manaWell.getIsDormant()) {
@@ -116,8 +124,10 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 
 			storedMana += generatedMana;
 
-			// set the blockstate of the mana well to reflect how much mana is
-			// in it
+			/*
+			 * set the blockstate of the mana well to reflect how much mana is
+			 * in it
+			 */
 			if (storedMana >= MANA_CAP) {
 				if (fillLevel != 5) {
 					fillLevel = 5;
@@ -152,35 +162,23 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 
 			// change the blockstate if needed
 			if (blockChange) {
-				worldIn.setBlockState(pos, state.withProperty(FILL_LEVEL, fillLevel), 3); // NOTE:
-																							// when
-																							// the
-																							// blockstate
-																							// of
-																							// a
-																							// block
-																							// is
-																							// changed
-																							// the
-																							// associated
-																							// tile
-																							// entity
-																							// is
-																							// deleted
-																							// and
-																							// a
-																							// new
-																							// one
-																							// is
-																							// created.
+				/*
+				 * Note: when the blockstate of a block is changed associated
+				 * tile entity is deleted and a new one is created
+				 */
+				worldIn.setBlockState(pos, state.withProperty(FILL_LEVEL, fillLevel), 3);
 
-				// get the tile entity at pos again (the tile entity changed so
-				// it will be a new one)
+				/*
+				 * get the tile entity at pos again (the tile entity changed so
+				 * it will be a new one)
+				 */
 				manaWell = (TileEntityManaWell) worldIn.getTileEntity(pos);
 
-				// if the blockstate is showing a model other than the empty
-				// mana well, which means there is mana in the well, set
-				// canRelease to true
+				/*
+				 * if the blockstate is showing a model other than the empty
+				 * mana well, which means there is mana in the well, set
+				 * canRelease to true
+				 */
 				if (fillLevel != 0) {
 					manaWell.setCanRelease(true);
 				}
@@ -189,8 +187,10 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 			// set the mana data on this (new, if state changed) tile entity
 			manaWell.setStoredMana(storedMana);
 
-			// play a sound when mana is generated; if no mana is generated
-			// drain mana from nearest player, if any
+			/*
+			 * play a sound when mana is generated; if no mana is generated
+			 * drain mana from nearest player, if any
+			 */
 			if (generatedMana > 0) {
 				this.playManaWellFillSound(worldIn, pos);
 			} else {
@@ -198,8 +198,10 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 				this.drainMana(worldIn, pos, player, manaWell);
 			}
 
-			// Attempt to attract a witch a number of times equal to the
-			// difficulty level index (0-3); if successful, stop trying
+			/*
+			 * Attempt to attract a witch a number of times equal to the
+			 * difficulty level index (0-3); if successful, stop trying
+			 */
 			if (fillLevel != 0) {
 				int i = 0;
 				while (i < worldIn.getDifficulty().getDifficultyId()
@@ -252,17 +254,8 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 			spawnPos = spawnPos.down();
 		}
 		y = spawnPos.getY();
-
-		if (worldIn.getBlockState(spawnPos.down()).getBlock() == this) // don't
-																		// spawn
-																		// a
-																		// witch
-																		// directly
-																		// above
-																		// a
-																		// mana
-																		// well
-		{
+		// dont spawn a witch directly above a mana well
+		if (worldIn.getBlockState(spawnPos.down()).getBlock() == this) {
 			return false;
 		}
 
@@ -320,15 +313,8 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 					EntityPlayer player = (EntityPlayer) entityIn;
 					TileEntityManaWell manaWell = (TileEntityManaWell) worldIn.getTileEntity(pos);
 					if (manaWell.getIsDormant()) {
-						if (worldIn.getTotalWorldTime() > manaWell.getDormantStartTime() + 60) // 3
-																								// second
-																								// delay
-																								// before
-																								// starting
-																								// to
-																								// suck
-																								// mana
-						{
+						// 3 second delay before starting to suck mana
+						if (worldIn.getTotalWorldTime() > manaWell.getDormantStartTime() + 60) {
 							this.drainMana(worldIn, pos, player, manaWell);
 						}
 					} else {
@@ -353,34 +339,16 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 					worldIn.playSound((EntityPlayer) null, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_TOUCH,
 							SoundCategory.PLAYERS, 0.1F,
 							0.5F * ((worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.7F + 2F));
-					worldIn.setBlockState(pos, worldIn.getBlockState(pos).withProperty(FILL_LEVEL, 0), 3); // note:
-																											// this
-																											// deletes
-																											// the
-																											// tile
-																											// entity
-																											// and
-																											// creates
-																											// a
-																											// new
-																											// one
+					// note: this deletes the tile entity and creates a new one
+					worldIn.setBlockState(pos, worldIn.getBlockState(pos).withProperty(FILL_LEVEL, 0), 3);
 
 					// Get the new tile entity
 					manaWell = (TileEntityManaWell) worldIn.getTileEntity(pos);
 
 					manaWell.setIsDormant(true);
-					manaWell.setDormantStartTime(worldIn.getTotalWorldTime()); // get
-																				// the
-																				// total
-																				// world
-																				// time
-																				// (in
-																				// ticks)
-																				// at
-																				// the
-																				// time
-																				// of
-																				// release
+					// get the total world time (in tecks) at the time of
+					// release
+					manaWell.setDormantStartTime(worldIn.getTotalWorldTime());
 					manaWell.setCanRelease(false);
 					manaWell.setStoredMana(0);
 
@@ -452,17 +420,8 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 		TileEntityManaWell manaWell = (TileEntityManaWell) worldIn.getTileEntity(pos);
 		if (manaWell.getCanRelease() && playerIn.capabilities.allowEdit) {
 			releaseXP(worldIn, pos, manaWell.getStoredMana());
-			worldIn.setBlockState(pos, worldIn.getBlockState(pos).withProperty(FILL_LEVEL, 0), 3); // note:
-																									// this
-																									// deletes
-																									// the
-																									// tile
-																									// entity
-																									// and
-																									// creates
-																									// a
-																									// new
-																									// one
+			// note: this deletes the tile entity and creates a new one
+			worldIn.setBlockState(pos, worldIn.getBlockState(pos).withProperty(FILL_LEVEL, 0), 3);
 
 			// Get the new tile entity
 			manaWell = (TileEntityManaWell) worldIn.getTileEntity(pos);
@@ -470,18 +429,8 @@ public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider{
 			manaWell.setStoredMana(0);
 			manaWell.setCanRelease(false);
 			manaWell.setIsDormant(true);
-			manaWell.setDormantStartTime(worldIn.getTotalWorldTime()); // get
-																		// the
-																		// total
-																		// world
-																		// time
-																		// (in
-																		// ticks)
-																		// at
-																		// the
-																		// time
-																		// of
-																		// release
+			// get the total world time (in ticks) at the time of release
+			manaWell.setDormantStartTime(worldIn.getTotalWorldTime());
 		}
 	}
 

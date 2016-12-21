@@ -3,6 +3,8 @@ package com.epiicthundercat.manawell.init;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.epiicthundercat.manawell.blocks.BlockManaWell;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -20,7 +22,7 @@ public class ManaWellBlocks extends Blocks{
 	
 public static List<Block> blocks = new ArrayList();
 	
-	public static Block mana_well = new ManaWellBlock("mana_well", Material.ROCK);
+	public static Block mana_well = new BlockManaWell();
 	
 	
 	public static List<Block> blockList() {
