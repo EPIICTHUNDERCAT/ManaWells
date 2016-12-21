@@ -1,0 +1,11 @@
+{
+    "variants":
+    {
+        "fill_level=0": { "model": "mana_well_mod:mana_well0"},
+        "fill_level=1": { "model": "mana_well_mod:mana_well1"},
+        "fill_level=2": { "model": "mana_well_mod:mana_well2"},
+        "fill_level=3": { "model": "mana_well_mod:mana_well3"},
+        "fill_level=4": { "model": "mana_well_mod:mana_well4"},
+        "fill_level=5": { "model": "mana_well_mod:mana_well5"}
+    }
+}
