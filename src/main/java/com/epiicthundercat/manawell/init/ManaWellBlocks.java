@@ -19,34 +19,6 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 
 public class ManaWellBlocks {
-	/*//Block Declaration
-		public static Block mana_well;
-		
-		//Block Registration
-		public static void init()
-		{
-			mana_well = new BlockManaWell().setUnlocalizedName("mana_well");
-			register(mana_well);
-		}
-		
-		//Render Registers
-		public static void registerRenders()
-		{
-			registerRender(mana_well);
-		}
-		
-		
-		public static void register(Block block)
-		{
-			GameRegistry.registerBlock(block, block.getUnlocalizedName().substring(5));
-		}
-		
-		public static void registerRender(Block block)
-		{
-			Item item = Item.getItemFromBlock(block);
-			Minecraft.getMinecraft().getRenderItem().getItemModelMesher().
-			register(item, 0, new ModelResourceLocation(Reference.ID + ":" + item.getUnlocalizedName().substring(5), "inventory"));
-		}*/
 	
 public static List<Block> blocks = new ArrayList();
 	

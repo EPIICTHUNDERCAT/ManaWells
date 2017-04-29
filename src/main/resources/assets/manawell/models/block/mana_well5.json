@@ -1,8 +1,11 @@
 {
-    "parent": "block/block",
+    "parent": "block/cube",
     "textures": {
-        "top": "manawell:blocks/mana_well_top_5",
-        "side": "manawell:blocks/mana_well_side",
-        "bottom": "manawell:blocks/mana_well_side"
+        "up": "manawell:blocks/mana_well_top_5",
+        "down": "manawell:blocks/mana_well_side",
+        "north": "manawell:blocks/mana_well_side",
+        "south": "manawell:blocks/mana_well_side",
+        "east": "manawell:blocks/mana_well_side",
+        "west": "manawell:blocks/mana_well_side"
     }
 }

@@ -208,7 +208,7 @@ EntityPlayer player1;
 				while (i < worldIn.getDifficulty().getDifficultyId()
 						&& !this.attemptAttractWitch(worldIn, pos, storedMana, rand)) {
 					i++;
-					System.out.println("WITCH SPAWN ATTEMPT (" + i + ") FAILED");
+					//System.out.println("WITCH SPAWN ATTEMPT (" + i + ") FAILED");
 				}
 			}
 

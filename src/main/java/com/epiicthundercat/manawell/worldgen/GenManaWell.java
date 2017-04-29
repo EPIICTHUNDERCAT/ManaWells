@@ -28,7 +28,7 @@ public class GenManaWell extends WorldGenerator {
 			world.setBlockState(pos.down(), Blocks.BEDROCK.getDefaultState(), 2); //place a block of bedrock under the mana well if there is none (just an extra check to prevent void holes)
 		}
 		
-		System.out.println("pos = " + pos);
+		//System.out.println("pos = " + pos);
 		
 		//make an area above the mana well free of bedrock to prevent two-deep holes with a mana well at the bottom, and also just to make access easier once found
 		if(pos.getY() < 4)
