@@ -272,14 +272,14 @@ EntityPlayer player1;
 		entity.setLocationAndAngles(x, y, z, rand.nextFloat() * 360.0F, 0.0F);
 
 		if (this.getCanManaWellWitchSpawnHere(worldIn, spawnPos, maxLight) && entityliving.isNotColliding()) {
-			if (entityliving.worldObj != null) {
+			if (entityliving.world != null) {
 				// set false for now
 				EntityPlayer closestPlayer = worldIn.getClosestPlayer(x, y, z, 128.0D, false);
 				if (closestPlayer != null && !closestPlayer.isSpectator()) {
 					if (closestPlayer.getDistanceSq(x, y, z) > 576) // 24
 																	// squared
 					{
-						entity.worldObj.spawnEntityInWorld(entity);
+						entity.world.spawnEntity(entity);
 						if (entityliving != null) {
 							entityliving.spawnExplosionParticle();
 						}
@@ -378,10 +378,10 @@ EntityPlayer player1;
 										// stuff runs only on the server
 				{
 					WorldServer worldserver = (WorldServer) world;
-					if (!world.getBlockState(pos.up()).getBlock().isVisuallyOpaque()) {
+					if (!world.getBlockState(pos.up()).getBlock().isOpaqueCube(getDefaultState())) {
 						worldserver.spawnParticle(EnumParticleTypes.SMOKE_LARGE, false, pos.getX() + 0.5D,
 								pos.getY() + 1.0D, pos.getZ() + 0.5D, 1, 0.0D, 0.0D, 0.0D, 0.0D, new int[0]);
-					} else if (!world.getBlockState(pos.up(2)).getBlock().isVisuallyOpaque()) {
+					} else if (!world.getBlockState(pos.up(2)).getBlock().isOpaqueCube(getDefaultState())) {
 						worldserver.spawnParticle(EnumParticleTypes.SMOKE_LARGE, false, pos.getX() + 0.5D,
 								pos.getY() + 1.0D, pos.getZ() + 0.5D, 1, 0.0D, 0.0D, 0.0D, 0.0D, new int[0]);
 					}
@@ -441,7 +441,7 @@ EntityPlayer player1;
 				int j = EntityXPOrb.getXPSplit(amount);
 				amount -= j;
 
-				worldIn.spawnEntityInWorld(new EntityXPOrb(worldIn, (double) pos.getX() + 0.5D,
+				worldIn.spawnEntity(new EntityXPOrb(worldIn, (double) pos.getX() + 0.5D,
 						(double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, j));
 			}
 		}
