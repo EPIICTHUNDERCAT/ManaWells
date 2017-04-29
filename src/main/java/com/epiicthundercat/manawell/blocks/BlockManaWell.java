@@ -260,7 +260,7 @@ EntityPlayer player1;
 		}
 
 		// get the entity and check if it can spawn at the spawn position
-		Entity entity = EntityList.createEntityByName("Witch", worldIn);
+		Entity entity = EntityList.createEntityByID(66, worldIn);
 
 		if (entity == null)
 			return false;
@@ -333,10 +333,10 @@ EntityPlayer player1;
 					((EntityWitch) entityIn).addPotionEffect(new PotionEffect(Potion.getPotionById(11), duration, 0));
 					((EntityWitch) entityIn).addPotionEffect(new PotionEffect(Potion.getPotionById(1), duration, 4));
 
-					worldIn.playSound((EntityPlayer) null, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP,
+					worldIn.playSound((EntityPlayer) player1, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP,
 							SoundCategory.PLAYERS, 0.1F,
 							0.5F * ((worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.7F + 2F));
-					worldIn.playSound((EntityPlayer) null, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_TOUCH,
+					worldIn.playSound((EntityPlayer) player1, pos, SoundEvents.ENTITY_EXPERIENCE_BOTTLE_THROW,
 							SoundCategory.PLAYERS, 0.1F,
 							0.5F * ((worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.7F + 2F));
 					// note: this deletes the tile entity and creates a new one
@@ -547,7 +547,7 @@ EntityPlayer player1;
 
 		float volume = 0.12f;// 0.033f;
 		float pitch = 0.5F * ((world.rand.nextFloat() - world.rand.nextFloat()) * 0.7F + 1.8F);
-		world.playSound((EntityPlayer) player, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_TOUCH, SoundCategory.PLAYERS, 0.1F,
+		world.playSound((EntityPlayer) player, pos, SoundEvents.ENTITY_EXPERIENCE_BOTTLE_THROW, SoundCategory.PLAYERS, 0.1F,
 				0.5F * ((world.rand.nextFloat() - world.rand.nextFloat()) * 0.7F + 2F));
 	}
 
