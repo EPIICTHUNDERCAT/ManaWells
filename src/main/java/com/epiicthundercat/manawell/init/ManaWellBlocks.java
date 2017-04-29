@@ -30,19 +30,29 @@ public static List<Block> blocks = new ArrayList();
 	}
 	
 	public static void register(FMLPreInitializationEvent preEvent) {
-		for (Block block : blockList()){
+		for (Block block : blockList()) {
 			ItemBlock iBlock = new ItemBlock(block);
+			if (block.getRegistryName().toString().endsWith("_crop")) {
+				iBlock.setMaxStackSize(1);
+			}
 			GameRegistry.register(block);
-		    GameRegistry.register(iBlock, block.getRegistryName());
+			GameRegistry.register(iBlock, block.getRegistryName());
 		}
 	}
-	
+
 	public static void registerRender(FMLInitializationEvent event) {
-		for (Block block : blockList()){
-		Item item = new Item().getItemFromBlock(block);
-		RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
-    	renderItem.getItemModelMesher().register(item, 0, new ModelResourceLocation(Reference.ID + ":"+ block.getRegistryName().toString(), "inventory"));
+		for (Block block : blockList()) {
+			new Item();
+			Item item = Item.getItemFromBlock(block);
+			RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+			renderItem.getItemModelMesher().register(item, 0,
+					new ModelResourceLocation(block.getRegistryName(), ("inventory")));
 		}
+	}
+
+	public static int getIdFromBlock(Block block) {
+		int id = Block.getIdFromBlock(block);
+		return id;
 	}
 	
 }

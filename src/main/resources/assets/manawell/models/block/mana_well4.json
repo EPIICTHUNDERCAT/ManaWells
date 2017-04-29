@@ -1,6 +1,7 @@
 {
     "parent": "block/cube",
     "textures": {
+    	"particle": "blocks/bedrock",
         "up": "manawell:blocks/mana_well_top_4",
         "down": "manawell:blocks/mana_well_side",
         "north": "manawell:blocks/mana_well_side",
