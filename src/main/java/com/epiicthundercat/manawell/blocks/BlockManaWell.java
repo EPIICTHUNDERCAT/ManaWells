@@ -2,6 +2,7 @@ package com.epiicthundercat.manawell.blocks;
 
 import java.util.Random;
 
+import com.epiicthundercat.manawell.init.ManaWellBlock;
 import com.epiicthundercat.manawell.tileentity.TileEntityManaWell;
 
 import net.minecraft.block.Block;
@@ -32,16 +33,16 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
-public class BlockManaWell extends Block implements ITileEntityProvider {
+public class BlockManaWell extends ManaWellBlock implements ITileEntityProvider {
 
 	public static final PropertyInteger FILL_LEVEL = PropertyInteger.create("fill_level", 0, 5);
 	public static final int MANA_CAP = 560;
 	public static final int DORMANT_TIME = 24000; // one minecraft daye
-
+EntityPlayer player1;
 	private int collideTimer = 0;
 
-	public BlockManaWell() {
-		super(Material.ROCK);
+	public BlockManaWell(String name, Material material) {
+		super(name, material);
 		/*
 		 * set to 5 so they have the correct (full) texture when they are
 		 * generated(when a player places one the meta value is 0; handled under
@@ -191,7 +192,8 @@ public class BlockManaWell extends Block implements ITileEntityProvider {
 			 * drain mana from nearest player, if any
 			 */
 			if (generatedMana > 0) {
-				this.playManaWellFillSound(worldIn, pos);
+				
+				this.playManaWellFillSound(worldIn, player1, pos);
 			} else {
 				EntityPlayer player = this.getClosestPlayerWithXP(worldIn, pos.getX(), pos.getY(), pos.getZ(), 16.0D);
 				this.drainMana(worldIn, pos, player, manaWell);
@@ -206,8 +208,7 @@ public class BlockManaWell extends Block implements ITileEntityProvider {
 				while (i < worldIn.getDifficulty().getDifficultyId()
 						&& !this.attemptAttractWitch(worldIn, pos, storedMana, rand)) {
 					i++;
-					// System.out.println("WITCH SPAWN ATTEMPT (" + i + ")
-					// FAILED");
+					System.out.println("WITCH SPAWN ATTEMPT (" + i + ") FAILED");
 				}
 			}
 
@@ -542,17 +543,17 @@ public class BlockManaWell extends Block implements ITileEntityProvider {
 		}
 	}
 
-	private void playManaWellFillSound(World world, BlockPos pos) {
+	private void playManaWellFillSound(World world, EntityPlayer player, BlockPos pos) {
 
 		float volume = 0.12f;// 0.033f;
 		float pitch = 0.5F * ((world.rand.nextFloat() - world.rand.nextFloat()) * 0.7F + 1.8F);
-		world.playSound((EntityPlayer) null, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_TOUCH, SoundCategory.PLAYERS, 0.1F,
+		world.playSound((EntityPlayer) player, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_TOUCH, SoundCategory.PLAYERS, 0.1F,
 				0.5F * ((world.rand.nextFloat() - world.rand.nextFloat()) * 0.7F + 2F));
 	}
 
 	private void playManaWellDrainSound(World world, EntityPlayer player, BlockPos pos) {
-		this.playManaWellFillSound(world, pos);
-		world.playSound((EntityPlayer) null, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.1F,
+		this.playManaWellFillSound(world, player, pos);
+		world.playSound((EntityPlayer) player, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.1F,
 				0.5F * ((world.rand.nextFloat() - world.rand.nextFloat()) * 0.7F + 2F));
 	}
 

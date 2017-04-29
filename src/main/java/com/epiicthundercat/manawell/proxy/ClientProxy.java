@@ -11,8 +11,8 @@ public class ClientProxy extends CommonProxy{
 
 	public void preInit(FMLPreInitializationEvent preEvent) {
 		super.preInit(preEvent);
-		ManaWellBlocks.init();
-		ManaWellTileEntities.init();
+		
+		
 		
 
 	}
@@ -28,7 +28,7 @@ public class ClientProxy extends CommonProxy{
 	@Override
 	public void registerRenders(FMLInitializationEvent event)
 	{
-		ManaWellBlocks.registerRenders();
+	ManaWellBlocks.registerRender(event);
 		
 	}
 	
