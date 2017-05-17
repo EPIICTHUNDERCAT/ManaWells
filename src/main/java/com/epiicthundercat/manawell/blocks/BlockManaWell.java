@@ -260,7 +260,7 @@ EntityPlayer player1;
 		}
 
 		// get the entity and check if it can spawn at the spawn position
-		Entity entity = EntityList.createEntityByName("Witch", worldIn);
+		Entity entity = new EntityWitch(worldIn);
 
 		if (entity == null)
 			return false;
