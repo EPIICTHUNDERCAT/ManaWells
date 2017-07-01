@@ -1,5 +1,6 @@
 package com.epiicthundercat.manawell.proxy;
 
+import com.epiicthundercat.manawell.init.MConfigHandler;
 import com.epiicthundercat.manawell.init.ManaWellBlocks;
 import com.epiicthundercat.manawell.init.ManaWellTileEntities;
 
@@ -16,7 +17,7 @@ public class CommonProxy {
 
 	public void init(FMLInitializationEvent event) {
 		registerRenders(event);
-
+		  MConfigHandler.init();
 	}
 
 	private void register(FMLPreInitializationEvent preEvent) {

@@ -262,9 +262,7 @@ EntityPlayer player1;
 		// get the entity and check if it can spawn at the spawn position
 		Entity entity = new EntityWitch(worldIn);
 
-		if (entity == null)
-			return false;
-
+		
 		EntityLiving entityliving = entity instanceof EntityLiving ? (EntityLiving) entity : null;
 
 		if (entityliving == null)

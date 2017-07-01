@@ -2,6 +2,8 @@ package com.epiicthundercat.manawell.worldgen;
 
 import java.util.Random;
 
+import com.epiicthundercat.manawell.MGlobals;
+
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkGenerator;
@@ -63,7 +65,7 @@ public class ManaWellWorldGen implements IWorldGenerator{
 	
 	
 	private void addManaWells(World world, Random random, int x, int z) {
-		if(random.nextInt(64) == 0)
+		if(random.nextInt(MGlobals.MANAWELL_RARITY) == 0)
 		{
 			int posX = x + random.nextInt(16);
 			int posY = 4;
