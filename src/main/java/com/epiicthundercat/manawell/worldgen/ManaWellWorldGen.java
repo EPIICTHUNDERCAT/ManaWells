@@ -41,7 +41,7 @@ public class ManaWellWorldGen implements IWorldGenerator{
 		default:
 			if(world.provider.getDimension() != 0 && world.provider.isSurfaceWorld())
 			{
-				generateSurface(world, random, chunkX*16, chunkZ*16);
+				generateSurface(world, random, chunkX+ 4, chunkZ+ 4);
 			}
 		}
 		
@@ -67,9 +67,9 @@ public class ManaWellWorldGen implements IWorldGenerator{
 	private void addManaWells(World world, Random random, int x, int z) {
 		if(random.nextInt(MGlobals.MANAWELL_RARITY) == 0)
 		{
-			int posX = x + random.nextInt(16);
+			int posX = x + 8 + random.nextInt(16);
 			int posY = 4;
-			int posZ = z + random.nextInt(16);
+			int posZ = z + 8 + random.nextInt(16);
 			BlockPos pos = new BlockPos(posX, posY, posZ);
 			new GenManaWell().generate(world, random, pos);
 		}
