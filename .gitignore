@@ -21,8 +21,5 @@ build
 eclipse
 run
 
-CREDITS-fml.txt
-forge-1.10.2-12.18.3.2185-changelog.txt
-*.txt
-
-.DS_Store
+# Files from Forge MDK
+forge*changelog.txt
