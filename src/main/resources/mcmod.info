@@ -1,0 +1,16 @@
+[
+{
+  "modid": "manawell",
+  "name": "Mana Wells",
+  "description": "Adds Mana Wells to the world.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Dark Lizzy, Epiic_Thundercat"],
+  "credits": "",
+  "logoFile": "manawell.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]

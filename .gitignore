@@ -1,0 +1,27 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+.gradle
+.cache
+run-data
+# other
+eclipse
+run
+
+# Files from Forge MDK
+forge*changelog.txt
+hs_err_pid15972.log
