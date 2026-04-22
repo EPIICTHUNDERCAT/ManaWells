@@ -22,10 +22,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Random;
 
 public class ManaWellBedrockBlock extends BaseEntityBlock {
     /**
@@ -68,7 +67,8 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
     }
 
 
-    public static boolean attemptAttractWitch(BlockPos pos, int storedMana, Random rand, Level level) {
+    // rand changed from java.util.Random to RandomSource (1.20.1: level.random now returns RandomSource).
+    public static boolean attemptAttractWitch(BlockPos pos, int storedMana, RandomSource rand, Level level) {
         if (!(level instanceof ServerLevel serverLevel)) return false;
 
         int manaCap = com.epiicthundercat.manawell.setup.MWConfig.MANAWELL_MANA_CAP.get();
@@ -80,14 +80,15 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         double x = posX + (rand.nextDouble() - rand.nextDouble()) * range + 0.5D;
         double y = posY + rand.nextDouble() * range + 0.5D;
         double z = posZ + (rand.nextDouble() - rand.nextDouble()) * range + 0.5D;
-        BlockPos spawnPos = new BlockPos(x, y, z);
+        // BlockPos(double,double,double) removed in 1.20.1; use BlockPos.containing() for proper floor.
+        BlockPos spawnPos = BlockPos.containing(x, y, z);
 
         int i = 0;
         while (i < numPositionsToCheck && !level.isEmptyBlock(spawnPos)) {
             x = posX + (rand.nextDouble() - rand.nextDouble()) * range + 0.5D;
             y = posY + rand.nextDouble() * range + 0.5D;
             z = posZ + (rand.nextDouble() - rand.nextDouble()) * range + 0.5D;
-            spawnPos = new BlockPos(x, y, z);
+            spawnPos = BlockPos.containing(x, y, z);
             i++;
         }
 
@@ -104,8 +105,8 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         Player closestPlayer = level.getNearestPlayer(x, y, z, 128.0D, false);
         if (closestPlayer == null || closestPlayer.isSpectator() || closestPlayer.distanceToSqr(x, y, z) <= 576) return false;
 
-        // EntityType.spawn already adds the entity to the world
-        Entity entity = EntityType.WITCH.spawn(serverLevel, null, null, null, spawnPos, MobSpawnType.STRUCTURE, false, false);
+        // Cast first null to CompoundTag to resolve ambiguity between the two 7-arg spawn overloads.
+        Entity entity = EntityType.WITCH.spawn(serverLevel, (net.minecraft.nbt.CompoundTag) null, null, spawnPos, MobSpawnType.STRUCTURE, false, false);
         if (entity == null) return false;
 
         entity.moveTo(x, y, z, rand.nextFloat() * 360.0F, 0.0F);
@@ -166,6 +167,8 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         freshManaWell.setDormantStartTime(level.getGameTime());
         freshManaWell.setCanRelease(false);
         freshManaWell.setStoredMana(0);
+        // Mark dirty so these state changes persist if the chunk saves before the next tick.
+        freshManaWell.setChanged();
     }
 
     public static void drainMana(Level world, BlockPos pos, Player player, ManaWellBedrockEntity manaWell) {

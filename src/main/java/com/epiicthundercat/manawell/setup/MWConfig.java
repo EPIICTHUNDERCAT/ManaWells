@@ -23,10 +23,10 @@ public class MWConfig {
     public static ForgeConfigSpec.IntValue MANAWELL_DRAIN_SPEED;
     public static ForgeConfigSpec.IntValue MANAWELL_MANA_CAP;
     public static ForgeConfigSpec.IntValue MANAWELL_DORMANT_TIME;
+    public static ForgeConfigSpec.IntValue MANAWELL_FILL_SPEED;
     public static void register() {
         registerServerConfigs();
-        registerCommonConfigs();
-        registerClientConfigs();
+
     }
 
     private static void registerServerConfigs() {
@@ -35,16 +35,16 @@ public class MWConfig {
         SERVER_BUILDER.comment("World Generation Settings");
         MANAWELL_RARITY = SERVER_BUILDER
                 .comment("Average number of chunks between Mana Well spawns.",
-                         "Higher = rarer. Range: 1-64. Default: 16.")
-                .defineInRange("manawellRarity", 16, 1, 64);
+                         "Higher = rarer. Range: 1-64. Default: 24.")
+                .defineInRange("manawellRarity", 24, 1, 64);
 
         MANAWELL_DRAIN_AMOUNT = SERVER_BUILDER
                 .comment("Max XP drained from nearby players per drain tick (every ~10s).",
                          "0 = disabled. Default: 2. Range: 0-14.")
                 .defineInRange("manawellDrainAmount", 2, 0, 14);
         MANAWELL_DRAIN_SPEED = SERVER_BUILDER
-                .comment("Ticks between passive drain pulses. Default: 200 (~10s). Range: 20-800.")
-                .defineInRange("manawellDrainSpeed", 200, 20, 800);
+                .comment("Ticks between passive drain pulses. Default: 150 (~7s). Range: 20-800.")
+                .defineInRange("manawellDrainSpeed", 150, 20, 800);
 
         MANAWELL_MANA_CAP = SERVER_BUILDER
                 .comment("Max mana stored before well is full (= XP released on step). Default: 560. Range: 280-1120.")
@@ -54,16 +54,13 @@ public class MWConfig {
                 .comment("Ticks the well rests after releasing mana before refilling. Default: 24000 (1 day). 0 = no dormancy. Range: 0-72000.")
                 .defineInRange("manawellDormantTime", 24000, 0, 72000);
 
+        MANAWELL_FILL_SPEED = SERVER_BUILDER
+                .comment("1-in-N chance per tick that mana generates while the well is filling (fillLevel < 5).",
+                         "1 = every tick (~7s to full), 3 = 33% chance (~21s), 6 = 17% chance (~42s). Range: 1-20. Default: 6.")
+                .defineInRange("manawellFillSpeed", 6, 1, 20);
+
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, SERVER_BUILDER.build());
     }
 
-    private static void registerCommonConfigs() {
-        ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, COMMON_BUILDER.build());
-    }
 
-    private static void registerClientConfigs() {
-        ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CLIENT_BUILDER.build());
-    }
 }

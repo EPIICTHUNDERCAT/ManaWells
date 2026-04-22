@@ -8,11 +8,9 @@ import net.minecraft.nbt.LongTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import java.util.List;
+import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -111,25 +109,17 @@ public class ManaWellBedrockEntity extends BlockEntity {
 
     }
     public static void tick(Level level, BlockPos pos, BlockState pState, ManaWellBedrockEntity pBlockEntity) {
-        //boolean debugLog = level.getGameTime() % 200 == 0;
-
-        // Only tick in the overworld near bedrock (Y<=-59)
-        if (pos.getY() > -59 || !level.dimension().equals(net.minecraft.world.level.Level.OVERWORLD)) {
-            //if (debugLog) System.out.println("[ManaWell] BLOCKED Y/dim — Y=" + pos.getY() + " dim=" + level.dimension().location());
-            return;
-        }
+        // DEBUG — uncomment to log fill/mana state every 200 ticks (~10s). Comment out for release.
+        // boolean debugLog = level.getGameTime() % 200 == 0;
 
         pBlockEntity = (ManaWellBedrockEntity) level.getBlockEntity(pos);
-        if (pBlockEntity == null) {
-            //System.out.println("[ManaWell] BLOCKED null entity at " + pos);
-            return;
-        }
+        if (pBlockEntity == null) return;
 
         int dormantTime = com.epiicthundercat.manawell.setup.MWConfig.MANAWELL_DORMANT_TIME.get();
         if (pBlockEntity.getIsDormant()) {
             long currentTime = level.getGameTime();
             long dormStart   = pBlockEntity.getDormantStartTime();
-            //if (debugLog) System.out.println("[ManaWell] DORMANT at " + pos + " — started=" + dormStart + " current=" + currentTime + " endsAt=" + (dormStart + dormantTime));
+            // if (debugLog) System.out.println("[ManaWell] DORMANT at " + pos + " started=" + dormStart + " current=" + currentTime + " endsAt=" + (dormStart + dormantTime));
             if (dormantTime == 0 || currentTime >= dormStart + dormantTime) {
                 pBlockEntity.setIsDormant(false);
             }
@@ -142,8 +132,10 @@ public class ManaWellBedrockEntity extends BlockEntity {
 
         // generate mana each tick
         int generatedMana = 0;
+        int fillSpeed = com.epiicthundercat.manawell.setup.MWConfig.MANAWELL_FILL_SPEED.get();
         if (fillLevel < 5) {
-            generatedMana = 1 + level.getRandom().nextInt(7); // 1-7 per tick while filling
+            if (level.getRandom().nextInt(fillSpeed) == 0) // 1-in-fillSpeed chance per tick
+                generatedMana = 1 + level.getRandom().nextInt(7); // 1-7 mana on a successful tick
         } else {
             // above manaCap, generation slows exponentially
             int chance;
@@ -172,7 +164,7 @@ public class ManaWellBedrockEntity extends BlockEntity {
         boolean blockChange = newFillLevel != fillLevel;
         if (blockChange) fillLevel = newFillLevel;
 
-       // if (debugLog) System.out.println("[ManaWell] pos=" + pos + " fillLevel=" + fillLevel + " storedMana=" + storedMana + " generatedMana=" + generatedMana + " blockChange=" + blockChange);
+        // if (debugLog) System.out.println("[ManaWell] pos=" + pos + " fillLevel=" + fillLevel + " storedMana=" + storedMana + " generated=" + generatedMana + " changed=" + blockChange + " t=" + level.getGameTime());
 
         if (blockChange) {
             level.setBlock(pos, pState.setValue(FILL_LEVEL, fillLevel), 3);
@@ -181,6 +173,7 @@ public class ManaWellBedrockEntity extends BlockEntity {
             if (fillLevel != 0) pBlockEntity.setCanRelease(true);
             if (fillLevel == 5) playManaWellFillSound(level, null, pos);
         }
+
 
         // ambient hum at max fill — staggered per position so multiple wells don't sync
         if (fillLevel == 5 && (level.getGameTime() + pos.getX() + pos.getZ()) % 60 == 0) {
@@ -208,13 +201,8 @@ public class ManaWellBedrockEntity extends BlockEntity {
                 i++;
             }
         }
-
-        // witches don't pathfind to the well, so scan proactively
-        if (pBlockEntity.getCanRelease()) {
-            List<Witch> nearby = level.getEntitiesOfClass(Witch.class, new AABB(pos).inflate(2.0));
-            if (!nearby.isEmpty())
-                ManaWellBedrockBlock.witchStealMana(level, pos, pState, nearby.get(0), pBlockEntity);
-        }
+        // Witch mana-steal fires from ManaWellBedrockBlock.stepOn(), not from the ticker.
+        // The proactive AABB scan was removed — stepOn is the correct trigger (same as 1.18.2).
     }
 
 }

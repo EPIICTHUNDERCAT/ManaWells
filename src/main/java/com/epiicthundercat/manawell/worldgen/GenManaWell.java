@@ -14,24 +14,45 @@ public class GenManaWell extends Feature<NoneFeatureConfiguration> {
 
     public GenManaWell() {
         super(NoneFeatureConfiguration.CODEC);
+        // DEBUG — fires once at mod load if DeferredRegister wired up correctly.
+        //System.out.println("[ManaWell-Gen] GenManaWell Feature registered!");
     }
 
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
-        BlockPos pos = context.origin();
+        BlockPos origin = context.origin();
+        BlockPos pos = origin;
+
+        // DEBUG — comment out for release.
+      //  System.out.println("[ManaWell-Gen] place() called at origin=" + origin);
 
         // Scan downward to find the topmost bedrock block.
-        // Stop at Y=-63 so the absolute bottom bedrock layer is never replaced (prevents void holes).
-        while (!level.getBlockState(pos).is(Blocks.BEDROCK) && pos.getY() > -63) {
+        // In 1.20.1 bedrock spans Y=-60 to Y=-64. Scan to Y=-64 to handle all cases.
+        // The absolute bottom (Y=-64) is left intact; we target Y=-63 or higher.
+        while (!level.getBlockState(pos).is(Blocks.BEDROCK) && pos.getY() > -64) {
             pos = pos.below();
         }
 
         if (!level.getBlockState(pos).is(Blocks.BEDROCK)) {
+           // System.out.println("[ManaWell-Gen] SKIPPED — no bedrock found from " + origin + " down to " + pos);
             return false;
         }
+        // Don't replace the absolute-bottom layer (Y=-64) — it prevents void holes if the mod is removed.
+        if (pos.getY() <= -64) {
+            pos = pos.above();
+            if (!level.getBlockState(pos).is(Blocks.BEDROCK)) {
+               // System.out.println("[ManaWell-Gen] SKIPPED — Y=-64 only, no bedrock at Y=-63");
+                return false;
+            }
+        }
 
-        level.setBlock(pos, Registration.MANA_WELL_BEDROCK.get().defaultBlockState(), 3);
+       // System.out.println("[ManaWell-Gen] PLACED at " + pos + " (scanned from " + origin + ")");
+
+        // Place with fill_level=5 so the block shows the full texture immediately on generation.
+        // The BlockEntity spawns with storedMana=MANA_CAP, so state and entity are in sync from the start.
+        level.setBlock(pos, Registration.MANA_WELL_BEDROCK.get().defaultBlockState()
+                .setValue(com.epiicthundercat.manawell.blocks.manawellblocks.ManaWellBedrockBlock.FILL_LEVEL, 5), 3);
 
         // Guarantee bedrock under the well so removing the mod never leaves a void hole.
         if (!level.getBlockState(pos.below()).is(Blocks.BEDROCK)) {
@@ -40,9 +61,8 @@ public class GenManaWell extends Feature<NoneFeatureConfiguration> {
 
         // Clear bedrock above the well for player accessibility and to avoid two-deep holes.
         if (pos.getY() < -59) {
-            // When the well is at the lowest allowed Y, shift the clear origin up one so it
-            // doesn't accidentally target the well block itself.
-            BlockPos clearOrigin = pos.getY() == -63 ? pos.above() : pos;
+            // Use pos directly; offset(x, 1, z) starts one block above pos, never at pos itself.
+            BlockPos clearOrigin = pos;
 
             // 3x3 one block above
             for (int x = -1; x <= 1; x++) {

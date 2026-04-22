@@ -1,9 +1,9 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "manawell:blocks/mana_well_side",
-		"1": "manawell:blocks/mana_well_top_0",
-		"particle": "manawell:blocks/mana_well_side"
+		"0": "manawell:block/mana_well_side",
+		"1": "manawell:block/mana_well_top_0",
+		"particle": "manawell:block/mana_well_side"
 	},
 	"elements": [
 		{
