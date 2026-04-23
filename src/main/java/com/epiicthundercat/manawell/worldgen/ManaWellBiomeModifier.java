@@ -2,7 +2,7 @@ package com.epiicthundercat.manawell.worldgen;
 
 import com.epiicthundercat.manawell.setup.MWConfig;
 import com.epiicthundercat.manawell.setup.Registration;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
@@ -58,7 +58,7 @@ public class ManaWellBiomeModifier implements BiomeModifier {
     }
 
     @Override
-    public Codec<? extends BiomeModifier> codec() {
+    public MapCodec<? extends BiomeModifier> codec() {
         return Registration.MANA_WELL_BIOME_MODIFIER_CODEC.get();
     }
 }

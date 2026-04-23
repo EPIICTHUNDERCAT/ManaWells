@@ -1,0 +1,23 @@
+{
+  "parent": "manawell:root",
+  "display": {
+    "icon": {
+      "id": "manawell:manawell_bedrock"
+    },
+    "title": {
+      "translate": "advancement.manawell.oom.title"
+    },
+    "description": {
+      "translate": "advancement.manawell.oom.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "witch_stole_mana": {
+      "trigger": "manawell:witch_stole_mana_proximity"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "parent": "manawell:root",
+  "display": {
+    "icon": {
+      "id": "manawell:manawell_bedrock"
+    },
+    "title": {
+      "translate": "advancement.manawell.first_mana_source.title"
+    },
+    "description": {
+      "translate": "advancement.manawell.first_mana_source.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "stepped_on_well": {
+      "trigger": "manawell:player_stepped_on_well"
+    }
+  }
+}

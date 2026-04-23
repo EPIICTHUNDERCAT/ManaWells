@@ -1,9 +1,11 @@
 package com.epiicthundercat.manawell.setup;
 
 import com.epiicthundercat.manawell.Reference;
+import com.epiicthundercat.manawell.advancement.ModAdvancements;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 /**
  * Creative tab name constant and item population event.
@@ -14,6 +16,13 @@ import net.minecraftforge.fml.common.Mod;
 public class ModSetup {
 
     public static final String TAB_NAME = "manawells";
+
+    // CriteriaTriggers.register() must run on the main thread after basic MC init.
+    // enqueueWork() defers execution to the main thread during common setup.
+    @SubscribeEvent
+    public static void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(ModAdvancements::init);
+    }
 
     @SubscribeEvent
     public static void buildCreativeTab(BuildCreativeModeTabContentsEvent event) {

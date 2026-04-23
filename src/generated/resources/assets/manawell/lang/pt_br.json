@@ -1,4 +1,10 @@
 {
+  "advancement.manawell.first_mana_source.description": "Você localizou os sons estranhos na caverna, talvez eu deva manter um registro de onde esses estão.",
+  "advancement.manawell.first_mana_source.title": "My first source of Mana...",
+  "advancement.manawell.oom.description": "A bruxa ficou sem mana! E agora você também.",
+  "advancement.manawell.oom.title": "OOM!",
+  "advancement.manawell.root.description": "The Mana Well Discovery.",
+  "advancement.manawell.root.title": "Mana Wells",
   "block.manawell.manawell_bedrock": "Pedra de Mana",
   "itemGroup.manawells": "Mana Wells"
 }

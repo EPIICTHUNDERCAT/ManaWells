@@ -2,15 +2,19 @@ package com.epiicthundercat.manawell.blocks.manawellblocks;
 
 import com.epiicthundercat.manawell.setup.Registration;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AmethystClusterBlock;
+import net.minecraft.world.phys.AABB;
+import java.util.List;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -75,8 +79,10 @@ public class ManaWellBedrockEntity extends BlockEntity {
     /**
      * These are the data components that save to the block - how it maintains energy and items after being broken and placed!
      */
+    // MC 1.20.5+: load() -> loadAdditional(CompoundTag, HolderLookup.Provider)
     @Override
-    public void load(CompoundTag tag) {
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
 
         if (tag.contains("canRelease")) {
             this.canRelease = tag.getBoolean("canRelease");
@@ -90,23 +96,21 @@ public class ManaWellBedrockEntity extends BlockEntity {
         if (tag.contains("storedMana", IntTag.TAG_INT)) {
             this.storedMana = tag.getInt("storedMana");
         }
-        super.load(tag);
     }
 
     /**
      * These are the data components that save to the block - how it maintains energy and items after being broken and placed!
      */
 
+    // MC 1.20.5+: saveAdditional(CompoundTag) -> saveAdditional(CompoundTag, HolderLookup.Provider)
     @Override
-    public void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
 
         tag.putBoolean("canRelease", this.canRelease);
         tag.putBoolean("isDormant", this.isDormant);
         tag.putLong("dormantStartTime", this.dormantStartTime);
         tag.putInt("storedMana", this.storedMana);
-
-
     }
     public static void tick(Level level, BlockPos pos, BlockState pState, ManaWellBedrockEntity pBlockEntity) {
         // DEBUG — uncomment to log fill/mana state every 200 ticks (~10s). Comment out for release.
@@ -193,6 +197,22 @@ public class ManaWellBedrockEntity extends BlockEntity {
                 drainMana(level, pos, player, pBlockEntity, level.getRandom().nextInt(drainAmount) + 1);
         }
 
+        // Witch proximity steal — checked once per second (every 20 ticks).
+        // stepOn() alone is unreliable: witches have no AI goal to path onto the block,
+        // so they spawn nearby but never physically walk over it. The AABB scan below
+        // fires witchStealMana() as soon as a witch wanders within 3 blocks of the well.
+        // stepOn() still fires too if the witch does walk directly over the block.
+        if (pBlockEntity.getCanRelease() && level.getGameTime() % 20 == 0
+                && level instanceof ServerLevel serverLevel) {
+            List<Witch> nearby = serverLevel.getEntitiesOfClass(
+                    Witch.class, new AABB(pos).inflate(3.0));
+            if (!nearby.isEmpty()) {
+                ManaWellBedrockBlock.witchStealMana(level, pos,
+                        level.getBlockState(pos), nearby.get(0), pBlockEntity);
+                return; // block state and BE have been reset inside witchStealMana; stop this tick
+            }
+        }
+
         // witch attraction — rate-limited to ~once per 800 ticks to prevent mass spawning
         if (fillLevel != 0 && level.getRandom().nextInt(800) == 0) {
             int i = 0;
@@ -201,8 +221,6 @@ public class ManaWellBedrockEntity extends BlockEntity {
                 i++;
             }
         }
-        // Witch mana-steal fires from ManaWellBedrockBlock.stepOn(), not from the ticker.
-        // The proactive AABB scan was removed — stepOn is the correct trigger (same as 1.18.2).
     }
 
 }

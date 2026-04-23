@@ -47,7 +47,13 @@ public class GenManaWell extends Feature<NoneFeatureConfiguration> {
             }
         }
 
-       // System.out.println("[ManaWell-Gen] PLACED at " + pos + " (scanned from " + origin + ")");
+        // Scan the entire bedrock column at this XZ for an existing well.
+        // Without this, a well placed at Y=-60 is no longer bedrock, so the downward scan
+        // skips it and places a second well at Y=-61 directly underneath.
+        for (int checkY = -64; checkY <= -59; checkY++) {
+            if (level.getBlockState(new BlockPos(pos.getX(), checkY, pos.getZ()))
+                    .is(Registration.MANA_WELL_BEDROCK.get())) return false;
+        }
 
         // Place with fill_level=5 so the block shows the full texture immediately on generation.
         // The BlockEntity spawns with storedMana=MANA_CAP, so state and entity are in sync from the start.

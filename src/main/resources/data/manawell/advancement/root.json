@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "manawell:manawell_bedrock"
+    },
+    "title": {
+      "translate": "advancement.manawell.root.title"
+    },
+    "description": {
+      "translate": "advancement.manawell.root.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": true,
+    "background": "minecraft:textures/block/deepslate.png"
+  },
+  "criteria": {
+    "tick": {
+      "trigger": "minecraft:tick"
+    }
+  }
+}

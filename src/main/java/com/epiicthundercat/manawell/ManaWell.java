@@ -16,10 +16,12 @@ public class ManaWell {
     public static final Logger LOGGER = LogManager.getLogger();
 
 
-    public ManaWell() {
-        IEventBus modbus = FMLJavaModLoadingContext.get().getModEventBus();
+    // Forge 52 (1.21.1): FMLJavaModLoadingContext is injected into the constructor.
+    // FMLJavaModLoadingContext.get() was removed; use context.getModEventBus() instead.
+    public ManaWell(FMLJavaModLoadingContext context) {
+        IEventBus modbus = context.getModEventBus();
 
-        Registration.init();
+        Registration.init(modbus);
         MWConfig.register();
 
         // ManaWellWorldGen uses @Mod.EventBusSubscriber(bus=FORGE) so Forge registers

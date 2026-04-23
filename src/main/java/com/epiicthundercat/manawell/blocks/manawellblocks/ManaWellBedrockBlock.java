@@ -1,6 +1,7 @@
 package com.epiicthundercat.manawell.blocks.manawellblocks;
 
 import com.epiicthundercat.manawell.setup.Registration;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -23,10 +24,26 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.server.level.ServerPlayer;
+import com.epiicthundercat.manawell.advancement.ModAdvancements;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Consumer;
 
 public class ManaWellBedrockBlock extends BaseEntityBlock {
+
+    // MC 1.21.1: Block/BaseEntityBlock requires codec() to be implemented.
+    // simpleCodec wraps the Properties constructor into the required MapCodec.
+    public static final MapCodec<ManaWellBedrockBlock> CODEC = simpleCodec(ManaWellBedrockBlock::new);
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
     /**
      * NOTES:
      * <p>
@@ -38,6 +55,12 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
 
     // Used only as the spawn-time storedMana initializer — must match manawellManaCap config default
     public static final int MANA_CAP = 560;
+
+    // Tracks witch UUIDs → game time of last steal. Prevents a witch in a well cluster from
+    // emptying multiple wells in one visit. Not persisted across server restarts (acceptable).
+    private static final Map<UUID, Long> witchStealCooldowns = new HashMap<>();
+    // Must be at least as long as the shortest possible dormant period to be meaningful.
+    private static final long WITCH_STEAL_COOLDOWN_TICKS = 1200; // 60 seconds
 
 
     public ManaWellBedrockBlock(Properties properties) {
@@ -52,6 +75,7 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
 
 
     }
+
 
     @Override
     public @NotNull RenderShape getRenderShape(@NotNull BlockState pState) {
@@ -105,8 +129,10 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         Player closestPlayer = level.getNearestPlayer(x, y, z, 128.0D, false);
         if (closestPlayer == null || closestPlayer.isSpectator() || closestPlayer.distanceToSqr(x, y, z) <= 576) return false;
 
-        // Cast first null to CompoundTag to resolve ambiguity between the two 7-arg spawn overloads.
-        Entity entity = EntityType.WITCH.spawn(serverLevel, (net.minecraft.nbt.CompoundTag) null, null, spawnPos, MobSpawnType.STRUCTURE, false, false);
+        // MC 1.21.1: old 7-arg had (ServerLevel, CompoundTag, Consumer, BlockPos, MobSpawnType, alignToBlock, invertY).
+        // CompoundTag removed; use 6-arg Consumer form with alignToBlock=false to match original behavior.
+        // The 3-arg shortcut internally uses alignToBlock=true which shifts Y off the bedrock layer.
+        Entity entity = EntityType.WITCH.spawn(serverLevel, (Consumer<Witch>) null, spawnPos, MobSpawnType.STRUCTURE, false, false);
         if (entity == null) return false;
 
         entity.moveTo(x, y, z, rand.nextFloat() * 360.0F, 0.0F);
@@ -125,6 +151,11 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entityIn) {
         if (!level.isClientSide()) {
             if (entityIn instanceof Player player) {
+                // Fire discovery advancement on first contact — MC only grants it once per player.
+                if (player instanceof ServerPlayer serverPlayer) {
+                    ModAdvancements.PLAYER_STEPPED_ON_WELL.trigger(serverPlayer);
+                }
+
                 ManaWellBedrockEntity manaWell = (ManaWellBedrockEntity) level.getBlockEntity(pos);
                 if (manaWell == null) return;
 
@@ -150,6 +181,9 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
 
 
     public static void witchStealMana(Level level, BlockPos pos, BlockState state, Witch witch, ManaWellBedrockEntity manaWell) {
+        Long lastSteal = witchStealCooldowns.get(witch.getUUID());
+        if (lastSteal != null && level.getGameTime() - lastSteal < WITCH_STEAL_COOLDOWN_TICKS) return;
+
         int duration = 80 + manaWell.getStoredMana() * 2;
         witch.addEffect(new MobEffectInstance(MobEffects.REGENERATION, duration, 4));
         witch.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration, 0));
@@ -169,6 +203,14 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         freshManaWell.setStoredMana(0);
         // Mark dirty so these state changes persist if the chunk saves before the next tick.
         freshManaWell.setChanged();
+
+        witchStealCooldowns.put(witch.getUUID(), level.getGameTime());
+
+        // Grant "OOM!" advancement to any player within 16 blocks who witnessed the theft.
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.getEntitiesOfClass(ServerPlayer.class, new AABB(pos).inflate(16.0))
+                    .forEach(ModAdvancements.WITCH_STOLE_MANA_PROXIMITY::trigger);
+        }
     }
 
     public static void drainMana(Level world, BlockPos pos, Player player, ManaWellBedrockEntity manaWell) {

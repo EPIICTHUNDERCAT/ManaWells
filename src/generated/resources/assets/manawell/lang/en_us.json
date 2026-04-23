@@ -1,4 +1,10 @@
 {
+  "advancement.manawell.first_mana_source.description": "You located the odd sounds in the cave, maybe I should keep a log of where these are.",
+  "advancement.manawell.first_mana_source.title": "My first source of Mana...",
+  "advancement.manawell.oom.description": "The witch was out of mana! and now so are you.",
+  "advancement.manawell.oom.title": "OOM!",
+  "advancement.manawell.root.description": "The Mana Well Discovery.",
+  "advancement.manawell.root.title": "Mana Wells",
   "block.manawell.manawell_bedrock": "Mana Well",
   "itemGroup.manawells": "Mana Wells"
 }

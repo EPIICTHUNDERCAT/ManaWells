@@ -35,8 +35,8 @@ public class MWConfig {
         SERVER_BUILDER.comment("World Generation Settings");
         MANAWELL_RARITY = SERVER_BUILDER
                 .comment("Average number of chunks between Mana Well spawns.",
-                         "Higher = rarer. Range: 1-64. Default: 24.")
-                .defineInRange("manawellRarity", 24, 1, 64);
+                         "Higher = rarer. Range: 1-64. Default: 32.")
+                .defineInRange("manawellRarity", 32, 1, 64);
 
         MANAWELL_DRAIN_AMOUNT = SERVER_BUILDER
                 .comment("Max XP drained from nearby players per drain tick (every ~10s).",
