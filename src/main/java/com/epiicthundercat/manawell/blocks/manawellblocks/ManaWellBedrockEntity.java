@@ -1,12 +1,11 @@
 package com.epiicthundercat.manawell.blocks.manawellblocks;
 
-import com.epiicthundercat.manawell.setup.Registration;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.LongTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraftforge.registries.RegistryObject;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.monster.Witch;
@@ -22,6 +21,10 @@ import static com.epiicthundercat.manawell.blocks.manawellblocks.ManaWellBedrock
 
 public class ManaWellBedrockEntity extends BlockEntity {
 
+    // Set by Registration static init — breaks circular compile dependency between entity
+    // constructor and Registration.MANA_WELL_BEDROCK_BE. Safe because Registration loads
+    // before any entity is ever instantiated.
+    public static RegistryObject<BlockEntityType<ManaWellBedrockEntity>> blockEntityType;
 
     private boolean canRelease = true;
     private boolean isDormant = false;
@@ -30,8 +33,7 @@ public class ManaWellBedrockEntity extends BlockEntity {
     private int collideTimer = 0;
 
     public ManaWellBedrockEntity(BlockPos pos, BlockState state) {
-        super(Registration.MANA_WELL_BEDROCK_BE.get(), pos, state);
-
+        super(blockEntityType.get(), pos, state);
     }
 
 
@@ -76,41 +78,25 @@ public class ManaWellBedrockEntity extends BlockEntity {
     }
 
 
-    /**
-     * These are the data components that save to the block - how it maintains energy and items after being broken and placed!
-     */
-    // MC 1.20.5+: load() -> loadAdditional(CompoundTag, HolderLookup.Provider)
+    // MC 26.1.2: loadAdditional/saveAdditional signatures changed to ValueInput/ValueOutput.
+    // CompoundTag/HolderLookup.Provider are gone. ValueInput uses getBooleanOr() and getInt/getLong()
+    // returning Optional; ValueOutput uses putBoolean/putInt/putLong as before.
     @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-
-        if (tag.contains("canRelease")) {
-            this.canRelease = tag.getBoolean("canRelease");
-        }
-        if (tag.contains("isDormant")) {
-            this.isDormant = tag.getBoolean("isDormant");
-        }
-        if (tag.contains("dormantStartTime", LongTag.TAG_LONG)) {
-            this.dormantStartTime = tag.getLong("dormantStartTime");
-        }
-        if (tag.contains("storedMana", IntTag.TAG_INT)) {
-            this.storedMana = tag.getInt("storedMana");
-        }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.canRelease = input.getBooleanOr("canRelease", true);
+        this.isDormant = input.getBooleanOr("isDormant", false);
+        input.getLong("dormantStartTime").ifPresent(v -> this.dormantStartTime = v);
+        input.getInt("storedMana").ifPresent(v -> this.storedMana = v);
     }
 
-    /**
-     * These are the data components that save to the block - how it maintains energy and items after being broken and placed!
-     */
-
-    // MC 1.20.5+: saveAdditional(CompoundTag) -> saveAdditional(CompoundTag, HolderLookup.Provider)
     @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-
-        tag.putBoolean("canRelease", this.canRelease);
-        tag.putBoolean("isDormant", this.isDormant);
-        tag.putLong("dormantStartTime", this.dormantStartTime);
-        tag.putInt("storedMana", this.storedMana);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putBoolean("canRelease", this.canRelease);
+        output.putBoolean("isDormant", this.isDormant);
+        output.putLong("dormantStartTime", this.dormantStartTime);
+        output.putInt("storedMana", this.storedMana);
     }
     public static void tick(Level level, BlockPos pos, BlockState pState, ManaWellBedrockEntity pBlockEntity) {
         // DEBUG — uncomment to log fill/mana state every 200 ticks (~10s). Comment out for release.
@@ -217,7 +203,7 @@ public class ManaWellBedrockEntity extends BlockEntity {
         if (fillLevel != 0 && level.getRandom().nextInt(800) == 0) {
             int i = 0;
             while (i < level.getDifficulty().getId()
-                    && !attemptAttractWitch(pos, storedMana, level.random, level)) {
+                    && !attemptAttractWitch(pos, storedMana, level.getRandom(), level)) {
                 i++;
             }
         }

@@ -1,19 +1,23 @@
 package com.epiicthundercat.manawell.advancement;
 
-import net.minecraft.advancements.CriteriaTriggers;
+import com.epiicthundercat.manawell.setup.Registration;
 
 public class ModAdvancements {
 
-    // Forge 52: CriteriaTriggers.register() takes a plain namespaced String, not a ResourceLocation.
-    public static final WitchStoleManaProximityTrigger WITCH_STOLE_MANA_PROXIMITY =
-        CriteriaTriggers.register("manawell:witch_stole_mana_proximity",
-            new WitchStoleManaProximityTrigger());
+    // MC 26.1.2: triggers are now registered via DeferredRegister<CriterionTrigger<?>> in Registration
+    // (Registries.TRIGGER_TYPE). Direct CriteriaTriggers.register() calls from enqueueWork fail because
+    // BuiltInRegistries are frozen by that point.
+    //
+    // Callers use .get() at runtime after registration completes — never at class-load time.
 
-    public static final PlayerSteppedOnManaWellTrigger PLAYER_STEPPED_ON_WELL =
-        CriteriaTriggers.register("manawell:player_stepped_on_well",
-            new PlayerSteppedOnManaWellTrigger());
+    public static WitchStoleManaProximityTrigger getWitchStoleMana() {
+        return Registration.WITCH_STOLE_MANA_PROXIMITY.get();
+    }
 
-    // Called from the @Mod constructor to force static field initialization,
-    // ensuring all triggers are registered before advancements are loaded.
+    public static PlayerSteppedOnManaWellTrigger getPlayerSteppedOnWell() {
+        return Registration.PLAYER_STEPPED_ON_WELL.get();
+    }
+
+    // Kept for compatibility — no longer needed since registration is handled by DeferredRegister.
     public static void init() {}
 }

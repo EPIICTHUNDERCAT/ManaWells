@@ -1,25 +1,20 @@
 package com.epiicthundercat.manawell.datagen;
 
-import com.epiicthundercat.manawell.Reference;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
-// GatherDataEvent import moved from net.minecraftforge.forge.event.lifecycle to net.minecraftforge.data.event in 1.20.1.
-@Mod.EventBusSubscriber(modid = Reference.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+// Forge 64 (26.1.2): @Mod.EventBusSubscriber + @SubscribeEvent removed.
+// Registered via GatherDataEvent.getBus(modBusGroup).addListener() in ManaWell constructor.
+//
+// NOTE: ManaWellsBlockStates (BlockStateProvider datagen) removed —
+// net.minecraftforge.client.model.generators was removed in 26.1.2.
+// Blockstate and item model JSONs already exist in src/generated/resources and src/main/resources.
 public class DataGenerators {
 
-    @SubscribeEvent
     public static void gatherData(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
 
-        if (event.includeServer()) {
-        }
-
         if (event.includeClient()) {
-            // addProvider now requires a boolean "run" flag and PackOutput instead of DataGenerator.
-            generator.addProvider(true, new ManaWellsBlockStates(generator.getPackOutput(), event.getExistingFileHelper()));
             generator.addProvider(true, new ManaWellsLanguageProvider(generator.getPackOutput(), "en_us"));
             generator.addProvider(true, new ManaWellsLanguageProvider(generator.getPackOutput(), "pt_br"));
         }

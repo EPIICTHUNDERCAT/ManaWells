@@ -11,6 +11,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -129,13 +130,12 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         Player closestPlayer = level.getNearestPlayer(x, y, z, 128.0D, false);
         if (closestPlayer == null || closestPlayer.isSpectator() || closestPlayer.distanceToSqr(x, y, z) <= 576) return false;
 
-        // MC 1.21.1: old 7-arg had (ServerLevel, CompoundTag, Consumer, BlockPos, MobSpawnType, alignToBlock, invertY).
-        // CompoundTag removed; use 6-arg Consumer form with alignToBlock=false to match original behavior.
-        // The 3-arg shortcut internally uses alignToBlock=true which shifts Y off the bedrock layer.
-        Entity entity = EntityType.WITCH.spawn(serverLevel, (Consumer<Witch>) null, spawnPos, MobSpawnType.STRUCTURE, false, false);
+        // MC 26.1.2: MobSpawnType renamed to EntitySpawnReason. entity.moveTo() renamed to snapTo().
+        // 6-arg form: spawn(ServerLevel, Consumer<T>, BlockPos, EntitySpawnReason, alignToBlock, invertY)
+        Entity entity = EntityType.WITCH.spawn(serverLevel, (Consumer<Witch>) null, spawnPos, EntitySpawnReason.STRUCTURE, false, false);
         if (entity == null) return false;
 
-        entity.moveTo(x, y, z, rand.nextFloat() * 360.0F, 0.0F);
+        entity.snapTo(x, y, z, rand.nextFloat() * 360.0F, 0.0F);
 
         serverLevel.sendParticles(ParticleTypes.POOF, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                 5, 0.2D, 0.2D, 0.2D, 0.05D);
@@ -153,7 +153,7 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
             if (entityIn instanceof Player player) {
                 // Fire discovery advancement on first contact — MC only grants it once per player.
                 if (player instanceof ServerPlayer serverPlayer) {
-                    ModAdvancements.PLAYER_STEPPED_ON_WELL.trigger(serverPlayer);
+                    ModAdvancements.getPlayerSteppedOnWell().trigger(serverPlayer);
                 }
 
                 ManaWellBedrockEntity manaWell = (ManaWellBedrockEntity) level.getBlockEntity(pos);
@@ -185,14 +185,16 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         if (lastSteal != null && level.getGameTime() - lastSteal < WITCH_STEAL_COOLDOWN_TICKS) return;
 
         int duration = 80 + manaWell.getStoredMana() * 2;
+        // MC 26.1.2: DAMAGE_RESISTANCE → RESISTANCE, MOVEMENT_SPEED → SPEED (constants renamed)
         witch.addEffect(new MobEffectInstance(MobEffects.REGENERATION, duration, 4));
-        witch.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration, 0));
-        witch.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, duration, 4));
+        witch.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, duration, 0));
+        witch.addEffect(new MobEffectInstance(MobEffects.SPEED, duration, 4));
 
+        // MC 26.1.2: Level.random is protected — use getRandom()
         level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.1F,
-                0.5F * ((level.random.nextFloat() - level.random.nextFloat()) * 0.7F + 2F));
+                0.5F * ((level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.7F + 2F));
         level.playSound(null, pos, SoundEvents.EXPERIENCE_BOTTLE_THROW, SoundSource.PLAYERS, 0.1F,
-                0.5F * ((level.random.nextFloat() - level.random.nextFloat()) * 0.7F + 2F));
+                0.5F * ((level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.7F + 2F));
 
         level.setBlock(pos, state.setValue(FILL_LEVEL, 0), 3);
         ManaWellBedrockEntity freshManaWell = (ManaWellBedrockEntity) level.getBlockEntity(pos);
@@ -209,7 +211,7 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         // Grant "OOM!" advancement to any player within 16 blocks who witnessed the theft.
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.getEntitiesOfClass(ServerPlayer.class, new AABB(pos).inflate(16.0))
-                    .forEach(ModAdvancements.WITCH_STOLE_MANA_PROXIMITY::trigger);
+                    .forEach(p -> ModAdvancements.getWitchStoleMana().trigger(p));
         }
     }
 
@@ -232,7 +234,9 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
                     worldServer.sendParticles(ParticleTypes.LARGE_SMOKE, pos.getX() + 0.5D,
                             pos.getY() + 1.0D, pos.getZ() + 0.5D, 1, 0.0D, 0.0D, 0.0D, 0.0D);
                 }
-                worldServer.sendParticles(ParticleTypes.INSTANT_EFFECT, player.position().x(), player.position().y(),
+                // MC 26.1.2: INSTANT_EFFECT is now ParticleType<SpellParticleOption>, not SimpleParticleType.
+                // ENCHANTED_HIT is SimpleParticleType with similar magical sparkle visual.
+                worldServer.sendParticles(ParticleTypes.ENCHANTED_HIT, player.position().x(), player.position().y(),
                         player.position().z(), 18, 0.33D, 1.33D, 0.33D, 0.06D);
 
                 playManaWellDrainSound(world, player, pos);
@@ -292,30 +296,8 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
         }
     }
 
-    @Override
-    public int getLightEmission(BlockState state, net.minecraft.world.level.BlockGetter level, BlockPos pos) {
-        return switch (state.getValue(FILL_LEVEL)) {
-            case 1 -> 6;
-            case 2 -> 8;
-            case 3 -> 10;
-            case 4 -> 12;
-            case 5 -> 14;
-            default -> 0;
-        };
-    }
-
-
-    @Deprecated
-    @Override
-    public void onRemove(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull BlockState pNewState, boolean pIsMoving) {
-        // Only remove the block entity when the block TYPE changes (e.g. broken/replaced).
-        // Changing fill_level keeps the same block — removing the entity here would kill the ticker.
-        if (!pState.is(pNewState.getBlock())) {
-            pLevel.removeBlockEntity(pPos);
-        }
-        super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
-    }
-
+    // MC 26.1.2: onRemove() removed from BlockBehaviour. Block entity cleanup on block-type change
+    // is now handled internally by the chunk/level. No override needed.
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> blockStateBuilder) {
@@ -336,16 +318,16 @@ public class ManaWellBedrockBlock extends BaseEntityBlock {
 
     public static void playManaWellFillSound(Level world, Player player, BlockPos pos) {
 
-        float volume = 0.12f;// 0.033f;
-        float pitch = 0.5F * ((world.random.nextFloat() - world.random.nextFloat()) * 0.7F + 1.8F);
+        float volume = 0.12f;
+        float pitch = 0.5F * ((world.getRandom().nextFloat() - world.getRandom().nextFloat()) * 0.7F + 1.8F);
         world.playSound((Player) player, pos, SoundEvents.EXPERIENCE_BOTTLE_THROW, SoundSource.PLAYERS, 0.1F,
-                0.5F * ((world.random.nextFloat() - world.random.nextFloat()) * 0.7F + 2F));
+                0.5F * ((world.getRandom().nextFloat() - world.getRandom().nextFloat()) * 0.7F + 2F));
     }
 
     private static void playManaWellDrainSound(Level world, Player player, BlockPos pos) {
         playManaWellFillSound(world, player, pos);
         world.playSound((Player) player, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.1F,
-                0.5F * ((world.random.nextFloat() - world.random.nextFloat()) * 0.7F + 2F));
+                0.5F * ((world.getRandom().nextFloat() - world.getRandom().nextFloat()) * 0.7F + 2F));
     }
 
 

@@ -1,12 +1,16 @@
 package com.epiicthundercat.manawell.setup;
 
+import com.epiicthundercat.manawell.advancement.PlayerSteppedOnManaWellTrigger;
+import com.epiicthundercat.manawell.advancement.WitchStoleManaProximityTrigger;
 import com.epiicthundercat.manawell.blocks.manawellblocks.ManaWellBedrockBlock;
 import com.epiicthundercat.manawell.blocks.manawellblocks.ManaWellBedrockEntity;
 import com.epiicthundercat.manawell.worldgen.GenManaWell;
 import com.epiicthundercat.manawell.worldgen.ManaWellBiomeModifier;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.advancements.CriterionTrigger;
 import net.minecraftforge.common.world.BiomeModifier;
 import net.minecraft.core.registries.Registries;
+import java.util.Set;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -19,7 +23,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -29,47 +33,51 @@ import static com.epiicthundercat.manawell.Reference.MODID;
 public class Registration {
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
-    // BLOCK_ENTITIES renamed to BLOCK_ENTITY_TYPES in 1.20.1
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(ForgeRegistries.FEATURES, MODID);
-    // Forge 52: BiomeModifier serializer registry uses MapCodec instead of Codec.
+    // MC 26.1.2: CriterionTriggers must be registered via DeferredRegister on Registries.TRIGGER_TYPE
+    // so they are added BEFORE BuiltInRegistries are frozen. Using CriteriaTriggers.register() from
+    // enqueueWork throws "Registry is already frozen".
+    private static final DeferredRegister<CriterionTrigger<?>> CRITERION_TRIGGERS =
+            DeferredRegister.create(Registries.TRIGGER_TYPE, MODID);
+    // Forge 52+: BiomeModifier serializer registry uses MapCodec instead of Codec.
     public static final DeferredRegister<MapCodec<? extends BiomeModifier>> BIOME_MODIFIER_SERIALIZERS =
             DeferredRegister.create(ForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, MODID);
 
-    // Creative tabs use Registries.CREATIVE_MODE_TAB in 1.20.1 (replacing the old new CreativeModeTab() constructor).
     private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
-
-    // Forge 52: bus is injected in the @Mod constructor and passed here (FMLJavaModLoadingContext.get() removed).
-    public static void init(IEventBus bus) {
+    // Forge 64 (26.1.2): IEventBus removed — DeferredRegister.register() now takes BusGroup.
+    public static void init(BusGroup bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
         BLOCK_ENTITIES.register(bus);
         FEATURES.register(bus);
         BIOME_MODIFIER_SERIALIZERS.register(bus);
         CREATIVE_TABS.register(bus);
+        CRITERION_TRIGGERS.register(bus);
     }
 
-    // Item.Properties no longer has .tab() in 1.20.1 — items are added to tabs via BuildCreativeModeTabContentsEvent.
-    public static final Item.Properties ITEM_PROPERTIES = new Item.Properties();
-
-    // --- Blocks & Items ---
-    // Declared BEFORE MANA_WELLS_TAB so the tab's icon() lambda can reference MANA_WELL_BEDROCK_ITEM.
-    // (Mirrors the forward-reference fix from the HempFarmer 1.18.2->1.20.1 guide.)
-
+    // MC 26.1.2: BlockBehaviour.Properties and Item.Properties both require .setId() before
+    // the block/item constructor runs. DeferredRegister does not set it automatically.
     public static final RegistryObject<ManaWellBedrockBlock> MANA_WELL_BEDROCK = BLOCKS.register("manawell_bedrock",
             () -> new ManaWellBedrockBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.BEDROCK)
+                    .setId(BLOCKS.key("manawell_bedrock"))
                     .noOcclusion()
-                    // noDrops() was removed in 1.20.1; noLootTable() is the replacement.
                     .noLootTable()
                     .sound(SoundType.METAL)
-                    .randomTicks()));
+                    .randomTicks()
+                    .lightLevel(state -> switch (state.getValue(ManaWellBedrockBlock.FILL_LEVEL)) {
+                        case 1 -> 6;
+                        case 2 -> 8;
+                        case 3 -> 10;
+                        case 4 -> 12;
+                        case 5 -> 14;
+                        default -> 0;
+                    })));
 
     public static final RegistryObject<Item> MANA_WELL_BEDROCK_ITEM = ITEMS.register("manawell_bedrock",
-            () -> new BlockItem(MANA_WELL_BEDROCK.get(), ITEM_PROPERTIES));
-
-    // --- Creative Tab ---
+            () -> new BlockItem(MANA_WELL_BEDROCK.get(), new Item.Properties().setId(ITEMS.key("manawell_bedrock"))));
 
     public static final RegistryObject<CreativeModeTab> MANA_WELLS_TAB = CREATIVE_TABS.register(ModSetup.TAB_NAME, () ->
             CreativeModeTab.builder()
@@ -78,21 +86,26 @@ public class Registration {
                     .build()
     );
 
-    // --- Block Entities ---
-
+    // MC 26.1.2: BlockEntityType.Builder removed. Use constructor directly: new BlockEntityType<>(factory, Set.of(blocks)).
+    // The back-reference ManaWellBedrockEntity.blockEntityType is set in the static init below to break
+    // the circular compile dependency (entity constructor → Registration → entity constructor body).
     public static final RegistryObject<BlockEntityType<ManaWellBedrockEntity>> MANA_WELL_BEDROCK_BE =
             BLOCK_ENTITIES.register("manawell_bedrock_block_entity",
-                    () -> BlockEntityType.Builder.of(ManaWellBedrockEntity::new,
-                            MANA_WELL_BEDROCK.get()).build(null));
+                    () -> new BlockEntityType<>(ManaWellBedrockEntity::new, Set.of(MANA_WELL_BEDROCK.get())));
 
-    // --- World Generation Features ---
+    static {
+        ManaWellBedrockEntity.blockEntityType = MANA_WELL_BEDROCK_BE;
+    }
 
-    // The Feature is still registered here. Biome injection is handled by ManaWellBiomeModifier
-    // (codec registered below) and the JSON at data/manawell/forge/biome_modifiers/mana_well.json.
+    public static final RegistryObject<WitchStoleManaProximityTrigger> WITCH_STOLE_MANA_PROXIMITY =
+            CRITERION_TRIGGERS.register("witch_stole_mana_proximity", WitchStoleManaProximityTrigger::new);
+
+    public static final RegistryObject<PlayerSteppedOnManaWellTrigger> PLAYER_STEPPED_ON_WELL =
+            CRITERION_TRIGGERS.register("player_stepped_on_well", PlayerSteppedOnManaWellTrigger::new);
+
     public static final RegistryObject<Feature<NoneFeatureConfiguration>> MANA_WELL_FEATURE =
             FEATURES.register("mana_well_feature", GenManaWell::new);
 
-    // Codec.unit always returns INSTANCE; the JSON only needs to declare the type, no extra fields.
     public static final RegistryObject<MapCodec<ManaWellBiomeModifier>> MANA_WELL_BIOME_MODIFIER_CODEC =
             BIOME_MODIFIER_SERIALIZERS.register("mana_well_biome_modifier",
                     () -> MapCodec.unit(ManaWellBiomeModifier.INSTANCE));

@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "fill_level=0": { "model": "manawell:block/manawell_bedrock0" },
+        "fill_level=1": { "model": "manawell:block/manawell_bedrock1" },
+        "fill_level=2": { "model": "manawell:block/manawell_bedrock2" },
+        "fill_level=3": { "model": "manawell:block/manawell_bedrock3" },
+        "fill_level=4": { "model": "manawell:block/manawell_bedrock4" },
+        "fill_level=5": { "model": "manawell:block/manawell_bedrock5" }
+    }
+}
